@@ -11,39 +11,50 @@ import (
 const PixelOffsetforRGB24 int64 = 54
 
 func verifyCorrectFormat(imgBytes []byte) error {
-	if !(isIdFieldValid(imgBytes) && isPixelOffsetValid(imgBytes)) {
-		return fmt.Errorf("file is not correct format of RGB24 bmp")
+
+	err := isIdFieldValid(imgBytes)
+	if err != nil {
+		return err
+	}
+
+	err = isPixelOffsetValid(imgBytes)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func isIdFieldValid(imgBytes []byte) bool {
+func isIdFieldValid(imgBytes []byte) error {
 
 	const BmpFirstIdField uint8 = 66
 	const BmpSecondIdField uint8 = 77
 
 	if len(imgBytes) < 2 || imgBytes[0] != BmpFirstIdField || imgBytes[1] != BmpSecondIdField {
-		return false
+		return fmt.Errorf("file is not correct format of bmp")
 	}
 
-	return true
+	return nil
 }
 
-func isPixelOffsetValid(imgBytes []byte) bool {
+func isPixelOffsetValid(imgBytes []byte) error {
 
 	const LocationOfPixelOffset int = 9
 	var pixelArrayOffset int64 = 0
 
 	if len(imgBytes) <= LocationOfPixelOffset+4 {
-		return false
+		return fmt.Errorf("bmp file is not correct format of RGB24 bmp")
 	}
 
 	for i := LocationOfPixelOffset; i <= LocationOfPixelOffset+4; i++ {
 		pixelArrayOffset += int64(imgBytes[i])
 	}
 
-	return pixelArrayOffset == PixelOffsetforRGB24
+	if pixelArrayOffset != PixelOffsetforRGB24 {
+		return fmt.Errorf("bmp file is not correct format of RGB24 bmp")
+	}
+
+	return nil
 }
 
 func main() {
